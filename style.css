@@ -1,0 +1,96 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 15px;
+}
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 1.5rem;
+}
+
+/* Área de Controle (Busca e Contador) */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.search-input {
+    padding: 12px;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s;
+}
+.search-input:focus {
+    border-color: #3498db;
+}
+.counter {
+    font-size: 14px;
+    color: #555;
+    text-align: right;
+}
+
+/* Tabela */
+.table-container {
+    overflow-x: auto;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    /* Adicionado para o cabeçalho fixo funcionar */
+    max-height: 75vh;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background-color: #fff;
+    min-width: 900px; /* Garante que não amasse no celular */
+}
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Cabeçalho Fixo e Interativo */
+th {
+    background-color: #34495e;
+    color: white;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer; /* Muda o mouse para 'mãozinha' */
+    user-select: none; /* Evita selecionar o texto ao clicar rápido */
+    transition: background-color 0.2s;
+}
+th:hover {
+    background-color: #2c3e50;
+}
+
+/* Setinhas de Ordenação */
+th::after {
+    content: ' ↕';
+    opacity: 0.3;
+    font-size: 12px;
+    margin-left: 5px;
+}
+th.asc::after {
+    content: ' ↑';
+    opacity: 1;
+}
+th.desc::after {
+    content: ' ↓';
+    opacity: 1;
+}
+
+tr:hover { background-color: #f1f1f1; }
+
+@media screen and (max-width: 600px) {
+    th, td { padding: 10px 8px; font-size: 14px; }
+}

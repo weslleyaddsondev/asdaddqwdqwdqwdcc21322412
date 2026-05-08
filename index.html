@@ -1,30 +1,118 @@
-
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Inscritos - Avanço Missionário</title>
-        
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscritos - Avanço Missionário</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 20px; }
-        h1 { text-align: center; color: #2c3e50; }
-        .table-container { overflow-x: auto; max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        table { border-collapse: collapse; width: 100%; background-color: #fff; min-width: 800px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #34495e; color: white; white-space: nowrap; }
-        tr:hover { background-color: #f1f1f1; }
-        /* Responsividade extra para telas menores */
-        @media screen and (max-width: 600px) {
-            th, td { padding: 8px 10px; font-size: 14px; }
-        }
+        body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 15px;
+}
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 1.5rem;
+}
+
+/* Área de Controle (Busca e Contador) */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.search-input {
+    padding: 12px;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s;
+}
+.search-input:focus {
+    border-color: #3498db;
+}
+.counter {
+    font-size: 14px;
+    color: #555;
+    text-align: right;
+}
+
+/* Tabela */
+.table-container {
+    overflow-x: auto;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    /* Adicionado para o cabeçalho fixo funcionar */
+    max-height: 75vh;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background-color: #fff;
+    min-width: 900px; /* Garante que não amasse no celular */
+}
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Cabeçalho Fixo e Interativo */
+th {
+    background-color: #34495e;
+    color: white;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer; /* Muda o mouse para 'mãozinha' */
+    user-select: none; /* Evita selecionar o texto ao clicar rápido */
+    transition: background-color 0.2s;
+}
+th:hover {
+    background-color: #2c3e50;
+}
+
+/* Setinhas de Ordenação */
+th::after {
+    content: ' ↕';
+    opacity: 0.3;
+    font-size: 12px;
+    margin-left: 5px;
+}
+th.asc::after {
+    content: ' ↑';
+    opacity: 1;
+}
+th.desc::after {
+    content: ' ↓';
+    opacity: 1;
+}
+
+tr:hover { background-color: #f1f1f1; }
+
+@media screen and (max-width: 600px) {
+    th, td { padding: 10px 8px; font-size: 14px; }
+}
     </style>
-    
-    </head>
-    <body>
-        <h1>Lista de Inscritos - Avanço Missionário</h1>
-        <div class="table-container">
-            <table class="dataframe minha-tabela">
+</head>
+<body>
+    <h1>Inscritos - Avanço Missionário (Lagoa de Jucá)</h1>
+
+    <div class="controls">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nome, equipe, cidade...">
+        <div id="rowCounter" class="counter">Carregando...</div>
+    </div>
+
+    <div class="table-container">
+        <table class="dataframe minha-tabela">
   <thead>
     <tr style="text-align: right;">
       <th>Data da Inscrição</th>
@@ -38,7 +126,7 @@
       <th>Experiência?</th>
       <th>Relato da Experiência</th>
       <th>Líder de Evangelismo?</th>
-      <th>Equipes de Interesse</th>
+      <th>Equipes</th>
       <th>Possui Restrição?</th>
       <th>Qual Restrição?</th>
       <th>Ciente da Taxa?</th>
@@ -1186,7 +1274,87 @@
     </tr>
   </tbody>
 </table>
-        </div>
-    </body>
-    </html>
-    
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.querySelector('.minha-tabela');
+    // O Pandas gera a tabela com a tag <tbody>, vamos focar nela
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const headers = table.querySelectorAll('thead th');
+    const counter = document.getElementById('rowCounter');
+
+    // Função para atualizar o contador
+    function updateCounter(count) {
+        counter.innerHTML = `Mostrando <strong>${count}</strong> inscrito(s)`;
+    }
+
+    // --- FUNCIONALIDADE 1: FILTRO DE BUSCA ---
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            // Pega todo o texto da linha (junta nome, cidade, igreja, etc)
+            const text = row.textContent.toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = ''; // Mostra a linha
+                visibleCount++;
+            } else {
+                row.style.display = 'none'; // Esconde a linha
+            }
+        });
+        updateCounter(visibleCount);
+    });
+
+    // --- FUNCIONALIDADE 2: ORDENAÇÃO AO CLICAR NA COLUNA ---
+    let currentSortColumn = -1;
+    let currentSortAsc = true;
+
+    headers.forEach((header, index) => {
+        header.addEventListener('click', () => {
+            // Remove as setas de todas as colunas
+            headers.forEach(h => { h.classList.remove('asc', 'desc'); });
+
+            // Inverte a ordem se clicou na mesma coluna, ou define crescente para nova coluna
+            const isAsc = currentSortColumn === index ? !currentSortAsc : true;
+            currentSortColumn = index;
+            currentSortAsc = isAsc;
+
+            // Adiciona a classe para mostrar a setinha
+            header.classList.add(isAsc ? 'asc' : 'desc');
+
+            // Ordena as linhas
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.children[index].textContent.trim();
+                const bText = b.children[index].textContent.trim();
+
+                // Verifica se é número ou texto para ordenar corretamente
+                const aNum = parseFloat(aText.replace(',', '.'));
+                const bNum = parseFloat(bText.replace(',', '.'));
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAsc ? aNum - bNum : bNum - aNum;
+                }
+
+                // Ordenação alfabética
+                return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+            });
+
+            // Limpa o corpo da tabela e adiciona as linhas ordenadas
+            tbody.innerHTML = '';
+            sortedRows.forEach(row => tbody.appendChild(row));
+
+            // Reaplica o filtro de busca, caso o usuário tenha buscado algo antes de ordenar
+            searchInput.dispatchEvent(new Event('input'));
+        });
+    });
+
+    // Inicializa o contador na primeira vez que abre
+    updateCounter(rows.length);
+});
+    </script>
+</body>
+</html>
