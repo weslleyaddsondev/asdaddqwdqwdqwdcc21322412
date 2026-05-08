@@ -2,7 +2,7 @@ export default async (request, context) => {
   const authHeader = request.headers.get('authorization');
   
   // Troque 'admin' pelo seu usuário e 'senha123' pela sua senha
-  const expectedAuth = `Basic ${btoa('admin:senha123')}`;
+  const expectedAuth = `Basic ${btoa('admin:inga123')}`;
 
   if (authHeader !== expectedAuth) {
     return new Response('Acesso Restrito', {
