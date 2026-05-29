@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
+    const printBtn = document.getElementById('printBtn');
     const table = document.querySelector('.minha-tabela');
     // O Pandas gera a tabela com a tag <tbody>, vamos focar nela
     const tbody = table.querySelector('tbody');
@@ -71,6 +72,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reaplica o filtro de busca, caso o usuário tenha buscado algo antes de ordenar
             searchInput.dispatchEvent(new Event('input'));
         });
+    });
+
+    // --- FUNCIONALIDADE 3: BOTÃO DE IMPRESSÃO / PDF ---
+    printBtn.addEventListener('click', function() {
+        window.print();
     });
 
     // Inicializa o contador na primeira vez que abre

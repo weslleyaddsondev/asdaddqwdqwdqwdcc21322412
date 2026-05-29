@@ -37,6 +37,36 @@ h1 {
 .search-input:focus {
     border-color: #3498db;
 }
+
+/* Alinhamento do Botão e Contador */
+.actions-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Estilo do Botão de PDF */
+.btn-print {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+}
+.btn-print:hover {
+    background-color: #219653;
+}
+.btn-print:active {
+    transform: scale(0.98);
+}
+
 .counter {
     font-size: 14px;
     color: #555;
@@ -49,14 +79,13 @@ h1 {
     max-width: 100%;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    /* Adicionado para o cabeçalho fixo funcionar */
     max-height: 75vh;
 }
 table {
     border-collapse: collapse;
     width: 100%;
     background-color: #fff;
-    min-width: 900px; /* Garante que não amasse no celular */
+    min-width: 900px;
 }
 th, td {
     padding: 12px 15px;
@@ -72,8 +101,8 @@ th {
     position: sticky;
     top: 0;
     z-index: 10;
-    cursor: pointer; /* Muda o mouse para 'mãozinha' */
-    user-select: none; /* Evita selecionar o texto ao clicar rápido */
+    cursor: pointer;
+    user-select: none;
     transition: background-color 0.2s;
 }
 th:hover {
@@ -100,15 +129,89 @@ tr:hover { background-color: #f1f1f1; }
 
 @media screen and (max-width: 600px) {
     th, td { padding: 10px 8px; font-size: 14px; }
+    .actions-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .counter {
+        text-align: left;
+    }
+}
+
+/* ==========================================================================
+   CONFIGURAÇÕES EXCLUSIVAS PARA IMPRESSÃO / GERAR PDF (CORRIGIDAS)
+   ========================================================================== */
+@media print {
+    @page {
+        size: A4 landscape; /* Mantém a folha deitada */
+        margin: 5mm; /* Margens bem pequenas para aproveitar ao máximo o espaço da folha */
+    }
+    body {
+        background-color: #fff;
+        color: #000;
+        margin: 0;
+    }
+    h1 {
+        font-size: 14pt;
+        margin-top: 0;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    /* Esconde os controles da tela */
+    .controls, .btn-print, th::after {
+        display: none !important;
+    }
+
+    /* Prepara a tabela para caber na folha */
+    .table-container {
+        overflow: visible !important;
+        max-height: none !important;
+        box-shadow: none !important;
+    }
+
+    table {
+        width: 100% !important; /* Força ocupar 100% da largura exata, sem vazar */
+        max-width: 100% !important;
+        table-layout: auto; /* Deixa colunas menores ocuparem menos espaço */
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+    thead {
+        display: table-header-group;
+    }
+
+    /* Configurações chave para o texto não ser cortado */
+    th, td {
+        padding: 4px !important; /* Reduz bastante o preenchimento */
+        font-size: 8pt !important; /* Reduz o tamanho da fonte */
+        white-space: normal !important; /* ESSENCIAL: Permite que o texto quebre linhas (Wrap text) */
+        word-wrap: break-word !important; /* Se tiver uma palavra gigante, ele quebra no meio para não vazar a tabela */
+        overflow-wrap: break-word !important;
+        border: 1px solid #ccc !important; /* Adiciona uma bordinha fina para facilitar a leitura no papel */
+    }
+
+    th {
+        background-color: #34495e !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        white-space: normal !important; /* Permite que os títulos do cabeçalho quebrem de linha também */
+    }
 }
     </style>
 </head>
 <body>
-    <h1>Inscritos - Avanço Missionário (Lagoa de Jucá)</h1>
+    <h1>Inscritos - Avanço Missionário</h1>
 
     <div class="controls">
         <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nome, equipe, cidade...">
-        <div id="rowCounter" class="counter">Carregando...</div>
+        <div class="actions-wrapper">
+            <button id="printBtn" class="btn-print">📄 Gerar PDF / Imprimir</button>
+            <div id="rowCounter" class="counter">Carregando...</div>
+        </div>
     </div>
 
     <div class="table-container">
@@ -1466,6 +1569,7 @@ tr:hover { background-color: #f1f1f1; }
     <script>
         document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
+    const printBtn = document.getElementById('printBtn');
     const table = document.querySelector('.minha-tabela');
     // O Pandas gera a tabela com a tag <tbody>, vamos focar nela
     const tbody = table.querySelector('tbody');
@@ -1537,6 +1641,11 @@ tr:hover { background-color: #f1f1f1; }
             // Reaplica o filtro de busca, caso o usuário tenha buscado algo antes de ordenar
             searchInput.dispatchEvent(new Event('input'));
         });
+    });
+
+    // --- FUNCIONALIDADE 3: BOTÃO DE IMPRESSÃO / PDF ---
+    printBtn.addEventListener('click', function() {
+        window.print();
     });
 
     // Inicializa o contador na primeira vez que abre
